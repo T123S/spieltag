@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FC 26 Spieltags-Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Teko:wght@400;600&family=Inter:wght@400;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #f8fafc;
+        }
+        h1, h2, h3, .match-vs {
+            font-family: 'Teko', sans-serif;
+            text-transform: uppercase;
+        }
+        .player-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #10b981;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 mb-2">
+                <i class="fa-solid fa-gamepad mr-3 text-emerald-500"></i>FC 26
+            </h1>
+            <h2 class="text-3xl text-slate-300 tracking-wider">Handicap Spieltags-Generator</h2>
+            <p class="text-slate-400 mt-2 text-sm max-w-xl mx-auto">
+                Trage die aktuellen Punkte der Tabelle ein. Das System berechnet ausgeglichene Teams basierend auf der Gesamtpunktzahl der jeweiligen 2er-Teams. Basis-Stärke ist OVR 80.
+            </p>
+            <button onclick="toggleHelp()" class="mt-4 text-emerald-500 hover:text-emerald-400 text-sm font-semibold transition-colors flex items-center justify-center mx-auto">
+                <i class="fa-solid fa-circle-info mr-2"></i> Wie funktioniert das Handicap?
+            </button>
+        </header>
+
+        <!-- Input Section -->
+        <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700 mb-8">
+            <h3 class="text-2xl text-emerald-400 mb-4 border-b border-slate-700 pb-2"><i class="fa-solid fa-ranking-star mr-2"></i>Aktuelle Punkte</h3>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-700 p-4 rounded-xl">
+                    <label class="block text-sm font-semibold text-slate-300 mb-1">Jörg</label>
+                    <input type="number" id="pts-joerg" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
+                </div>
+                <div class="bg-slate-700 p-4 rounded-xl">
+                    <label class="block text-sm font-semibold text-slate-300 mb-1">Ronald</label>
+                    <input type="number" id="pts-ronald" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
+                </div>
+                <div class="bg-slate-700 p-4 rounded-xl">
+                    <label class="block text-sm font-semibold text-slate-300 mb-1">Thomas</label>
+                    <input type="number" id="pts-thomas" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
+                </div>
+                <div class="bg-slate-700 p-4 rounded-xl">
+                    <label class="block text-sm font-semibold text-slate-300 mb-1">Theo</label>
+                    <input type="number" id="pts-theo" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
+                </div>
+            </div>
+
+            <button onclick="generateMatches()" class="mt-6 w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition hover:-translate-y-1 text-lg flex items-center justify-center">
+                <i class="fa-solid fa-rotate mr-2"></i> Spieltag Generieren
+            </button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="hidden">
+            <h3 class="text-3xl text-center text-white mb-6 font-bold tracking-wider font-['Teko']"><i class="fa-regular fa-calendar-days mr-2 text-emerald-500"></i>Die 6 Partien</h3>
+            <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Matches will be injected here via JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl p-6 max-w-lg w-full border border-slate-600 relative shadow-2xl">
+            <button onclick="toggleHelp()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            <h3 class="text-3xl text-emerald-400 mb-4 font-['Teko'] uppercase tracking-wide"><i class="fa-solid fa-scale-balanced mr-2"></i>Das Handicap-System</h3>
+            <div class="text-slate-300 space-y-3 text-sm leading-relaxed">
+                <p>Damit die Partien ausgeglichen bleiben, bekommt das Team mit mehr Punkten ein schwächeres Team zugelost und umgekehrt.</p>
+                <ul class="list-disc list-inside space-y-1 ml-2">
+                    <li>Die theoretische <strong>Basis-Teamstärke (OVR) ist 80</strong>.</li>
+                    <li>Für jeweils <strong>3 Punkte Vorsprung</strong> in der Tabelle gibt es <strong>-1 OVR</strong> Abzug bei der Teamwahl.</li>
+                    <li>Für jeweils <strong>3 Punkte Rückstand</strong> gibt es <strong>+1 OVR</strong> Bonus.</li>
+                </ul>
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 mt-3 text-emerald-100">
+                    <strong>Beispiel:</strong> Team A (20 Pkt) vs. Team B (8 Pkt). Differenz: 12 Punkte.<br>
+                    12 / 3 = 4 Stärkepunkte Unterschied.<br>
+                    Team A bekommt ein In-Game Team mit ~OVR 76 (80 - 4).<br>
+                    Team B bekommt ein In-Game Team mit ~OVR 84 (80 + 4).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Club Database classified by Approx. Overall Rating (OVR)
+        const clubsDb = {
+            86: ["Manchester City", "Real Madrid"],
+            85: ["Bayern München", "FC Liverpool", "FC Arsenal"],
+            84: ["FC Barcelona", "Paris SG", "Inter Mailand", "Bayer Leverkusen"],
+            83: ["Atletico Madrid", "Juventus Turin", "AC Mailand", "Borussia Dortmund"],
+            82: ["RB Leipzig", "SSC Neapel", "Aston Villa", "Tottenham Hotspur", "Newcastle United"],
+            81: ["AS Rom", "Lazio Rom", "FC Chelsea", "Manchester United"],
+            80: ["Eintracht Frankfurt", "West Ham United", "Real Sociedad", "Galatasaray"],
+            79: ["VfB Stuttgart", "Fenerbahce", "PSV Eindhoven", "Sporting CP"],
+            78: ["SC Freiburg", "Betis Sevilla", "FC Porto", "Benfica Lissabon", "Athletic Bilbao"],
+            77: ["VfL Wolfsburg", "Werder Bremen", "Ajax Amsterdam", "FC Girona"],
+            76: ["FC Augsburg", "1. FSV Mainz 05", "Union Berlin", "FC Turin"],
+            75: ["VfL Bochum", "FC St. Pauli", "Holstein Kiel", "RCD Mallorca"],
+            74: ["1. FC Heidenheim", "FC Empoli", "Deportivo Alaves"]
+        };
+
+        // The 6 Matchups defined by the user
+        const matchups = [
+            { id: 1, team1: ["Ronald", "Theo"], team2: ["Thomas", "Jörg"] },
+            { id: 2, team1: ["Ronald", "Jörg"], team2: ["Thomas", "Theo"] },
+            { id: 3, team1: ["Jörg", "Theo"], team2: ["Thomas", "Ronald"] },
+            { id: 4, team1: ["Thomas", "Jörg"], team2: ["Ronald", "Theo"] }, // Rückspiel 1
+            { id: 5, team1: ["Thomas", "Theo"], team2: ["Ronald", "Jörg"] }, // Rückspiel 2
+            { id: 6, team1: ["Thomas", "Ronald"], team2: ["Jörg", "Theo"] }  // Rückspiel 3
+        ];
+
+        // Settings
+        const BASE_OVR = 80;
+        const PTS_PER_OVR_DROP = 3; // Für wie viele Punkte Unterschied gibt es 1 OVR Abzug/Aufschlag?
+
+        function getPoints() {
+            return {
+                "Jörg": parseInt(document.getElementById('pts-joerg').value) || 0,
+                "Ronald": parseInt(document.getElementById('pts-ronald').value) || 0,
+                "Thomas": parseInt(document.getElementById('pts-thomas').value) || 0,
+                "Theo": parseInt(document.getElementById('pts-theo').value) || 0
+            };
+        }
+
+        function getTeamForOvr(targetOvr, excludeTeam = null) {
+            // Clamp OVR between min and max available in DB
+            let minOvr = Math.min(...Object.keys(clubsDb).map(Number));
+            let maxOvr = Math.max(...Object.keys(clubsDb).map(Number));
+            
+            let ovr = Math.max(minOvr, Math.min(targetOvr, maxOvr));
+            
+            // Try to find a team in exact category
+            let availableTeams = clubsDb[ovr];
+            if (excludeTeam) {
+                availableTeams = availableTeams.filter(t => t !== excludeTeam);
+            }
+
+            // If category empty (due to exclusion), expand search +/- 1 OVR until found
+            let searchRadius = 1;
+            while (availableTeams.length === 0 && searchRadius < 5) {
+                let lowerOvr = ovr - searchRadius;
+                let upperOvr = ovr + searchRadius;
+                
+                let fallbackTeams = [];
+                if (clubsDb[lowerOvr]) fallbackTeams.push(...clubsDb[lowerOvr]);
+                if (clubsDb[upperOvr]) fallbackTeams.push(...clubsDb[upperOvr]);
+                
+                if (excludeTeam) {
+                    fallbackTeams = fallbackTeams.filter(t => t !== excludeTeam);
+                }
+
+                if (fallbackTeams.length > 0) {
+                    availableTeams = fallbackTeams;
+                    // Note: We visually still might output the fallback team's actual OVR, 
+                    // but for simplicity we'll just treat it as if it matches.
+                }
+                searchRadius++;
+            }
+
+            // Pick random team from available
+            let randomIdx = Math.floor(Math.random() * availableTeams.length);
+            return availableTeams[randomIdx];
+        }
+
+        function toggleHelp() {
+            const modal = document.getElementById('help-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function generateSingleMatch(index) {
+            const pts = getPoints();
+            const match = matchups[index];
+            
+            // Calculate points
+            let ptsTeam1 = match.team1.reduce((sum, player) => sum + pts[player], 0);
+            let ptsTeam2 = match.team2.reduce((sum, player) => sum + pts[player], 0);
+            
+            // Calculate difference
+            let diff = ptsTeam1 - ptsTeam2;
+
+            // Calculate Target OVR
+            let handicapSteps = Math.round(diff / PTS_PER_OVR_DROP);
+            let targetOvr1 = BASE_OVR - handicapSteps;
+            let targetOvr2 = BASE_OVR + handicapSteps;
+
+            // Assign Clubs
+            let club1 = getTeamForOvr(targetOvr1);
+            let club2 = getTeamForOvr(targetOvr2, club1);
+
+            // Build inner HTML for the card
+            return `
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-blue-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                
+                <button onclick="generateSingleMatchUI(${index})" class="absolute top-3 right-3 text-slate-500 hover:text-emerald-400 hover:rotate-180 transition-all duration-300 z-10" title="Diese Partie neu auslosen">
+                    <i class="fa-solid fa-arrows-rotate text-lg"></i>
+                </button>
+                
+                <div class="text-center mb-4 text-emerald-500 font-bold text-sm tracking-widest uppercase">
+                    Partie ${match.id} ${match.id > 3 ? '(Rückspiel)' : '(Hinspiel)'}
+                </div>
+                
+                <div class="flex justify-between items-center">
+                    <!-- Team 1 -->
+                    <div class="w-5/12 text-center">
+                        <div class="text-sm text-slate-400 mb-1">${match.team1.join(' & ')}</div>
+                        <div class="text-xl font-bold text-white leading-tight h-12 flex items-center justify-center">${club1}</div>
+                        <div class="mt-2 inline-block bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-bold text-yellow-500">
+                            OVR ~${Math.min(86, Math.max(74, targetOvr1))}
+                        </div>
+                        <div class="text-[10px] text-slate-500 mt-1">Summe Pkt: ${ptsTeam1}</div>
+                    </div>
+
+                    <!-- VS -->
+                    <div class="w-2/12 text-center">
+                        <span class="match-vs text-3xl text-slate-600">VS</span>
+                    </div>
+
+                    <!-- Team 2 -->
+                    <div class="w-5/12 text-center">
+                        <div class="text-sm text-slate-400 mb-1">${match.team2.join(' & ')}</div>
+                        <div class="text-xl font-bold text-white leading-tight h-12 flex items-center justify-center">${club2}</div>
+                        <div class="mt-2 inline-block bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-bold text-yellow-500">
+                            OVR ~${Math.min(86, Math.max(74, targetOvr2))}
+                        </div>
+                        <div class="text-[10px] text-slate-500 mt-1">Summe Pkt: ${ptsTeam2}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateSingleMatchUI(index) {
+            const card = document.getElementById('match-card-' + index);
+            if (card) {
+                // Kurze Animation für visuelles Feedback
+                card.classList.add('opacity-50', 'scale-95');
+                setTimeout(() => {
+                    card.innerHTML = generateSingleMatch(index);
+                    card.classList.remove('opacity-50', 'scale-95');
+                }, 200);
+            }
+        }
+
+        function generateMatches() {
+            const container = document.getElementById('matches-container');
+            container.innerHTML = '';
+
+            matchups.forEach((match, index) => {
+                const card = document.createElement('div');
+                card.id = 'match-card-' + index;
+                card.className = "bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg relative overflow-hidden group transition-all duration-200";
+                
+                card.innerHTML = generateSingleMatch(index);
+                container.appendChild(card);
+            });
+
+            // Show results
+            document.getElementById('results').classList.remove('hidden');
+            
+            // Smooth scroll to results
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+</body>
+</html>
