@@ -44,7 +44,7 @@
         </header>
 
         <!-- Input Section -->
-        <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700 mb-8">
+        <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700 mb-6">
             <h3 class="text-2xl text-emerald-400 mb-4 border-b border-slate-700 pb-2"><i class="fa-solid fa-ranking-star mr-2"></i>Aktuelle Punkte</h3>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -65,16 +65,32 @@
                     <input type="number" id="pts-theo" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
                 </div>
             </div>
-
-            <button onclick="generateMatches()" class="mt-6 w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform transition hover:-translate-y-1 text-lg flex items-center justify-center">
-                <i class="fa-solid fa-rotate mr-2"></i> Spieltag Generieren
-            </button>
         </div>
+
+        <!-- Wunschvereine Section -->
+        <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700 mb-8 transition-all">
+            <button onclick="toggleWunschteams()" class="w-full flex justify-between items-center text-left focus:outline-none group">
+                <h3 class="text-2xl text-emerald-400 border-b border-transparent group-hover:border-slate-700 pb-1 transition-all font-['Teko'] uppercase tracking-wide"><i class="fa-solid fa-star mr-2"></i>Wunschvereine (Optional)</h3>
+                <i id="wunschteams-chevron" class="fa-solid fa-chevron-down text-emerald-500 transition-transform duration-300"></i>
+            </button>
+            
+            <div id="wunschteams-content" class="hidden mt-4 pt-4 border-t border-slate-700">
+                <p class="text-slate-400 text-sm mb-4">Wähle pro Partie einen Lieblingsverein für ein bestimmtes Team. Klicke dann auf den Button in der jeweiligen Karte, um <b>nur diese Partie</b> zu generieren.</p>
+                
+                <div id="wunschteams-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Wird per JS befüllt -->
+                </div>
+            </div>
+        </div>
+
+        <button onclick="generateMatches()" class="mb-10 w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition hover:-translate-y-1 text-xl flex items-center justify-center">
+            <i class="fa-solid fa-rotate mr-2"></i> Spieltag Generieren
+        </button>
 
         <!-- Results Section -->
         <div id="results" class="hidden">
             <h3 class="text-3xl text-center text-white mb-6 font-bold tracking-wider font-['Teko']"><i class="fa-regular fa-calendar-days mr-2 text-emerald-500"></i>Die 6 Partien</h3>
-            <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
                 <!-- Matches will be injected here via JS -->
             </div>
         </div>
@@ -99,6 +115,8 @@
                     Team A bekommt ein In-Game Team mit ~OVR 76 (80 - 4).<br>
                     Team B bekommt ein In-Game Team mit ~OVR 84 (80 + 4).
                 </div>
+                <p class="mt-2 text-emerald-400 font-semibold">Mit Wunschteam:</p>
+                <p>Wenn du ein Wunschteam wählst (z.B. OVR 85 für Team A), schaut das System, wie viele Stärkepunkte Unterschied nötig sind, und wählt den passenden Gegner (z.B. OVR 85 + 8 = OVR 93 -> bestmögliches Team) für Team B.</p>
             </div>
         </div>
     </div>
@@ -135,6 +153,72 @@
         const BASE_OVR = 80;
         const PTS_PER_OVR_DROP = 3; // Für wie viele Punkte Unterschied gibt es 1 OVR Abzug/Aufschlag?
 
+        document.addEventListener('DOMContentLoaded', () => {
+            initResultCards();
+            initWunschteams();
+        });
+
+        function initResultCards() {
+            const container = document.getElementById('matches-container');
+            container.innerHTML = '';
+            matchups.forEach((_, index) => {
+                const card = document.createElement('div');
+                card.id = 'match-card-' + index;
+                // Initiiert als versteckte Karten, damit sie bei Einzel-Generierung schon existieren
+                card.className = "hidden bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg relative overflow-hidden group transition-all duration-200";
+                container.appendChild(card);
+            });
+        }
+
+        function toggleWunschteams() {
+            const content = document.getElementById('wunschteams-content');
+            const chevron = document.getElementById('wunschteams-chevron');
+            content.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        function initWunschteams() {
+            const container = document.getElementById('wunschteams-container');
+            
+            // Generate flat list of clubs for the dropdowns
+            let clubsFlat = [];
+            for (const [ovr, clubs] of Object.entries(clubsDb)) {
+                clubs.forEach(c => clubsFlat.push({name: c, ovr: parseInt(ovr)}));
+            }
+            clubsFlat.sort((a, b) => a.name.localeCompare(b.name));
+            
+            let clubOptions = `<option value="">-- Kein Wunschteam (Zufall) --</option>`;
+            clubsFlat.forEach(c => {
+                clubOptions += `<option value="${c.name}">${c.name} (OVR ${c.ovr})</option>`;
+            });
+
+            matchups.forEach((match, index) => {
+                const team1Str = match.team1.join(' & ');
+                const team2Str = match.team2.join(' & ');
+                
+                const div = document.createElement('div');
+                div.className = "bg-slate-700/50 p-4 rounded-xl border border-slate-600";
+                div.innerHTML = `
+                    <div class="text-sm font-bold text-slate-300 mb-3 border-b border-slate-600 pb-1">
+                        Partie ${match.id}: <span class="text-emerald-400">${team1Str}</span> vs <span class="text-blue-400">${team2Str}</span>
+                    </div>
+                    <div class="flex flex-col space-y-2 mb-3">
+                        <select id="wunsch-club-${index}" class="w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white text-sm focus:outline-none focus:border-emerald-500">
+                            ${clubOptions}
+                        </select>
+                        <select id="wunsch-team-${index}" class="w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white text-sm focus:outline-none focus:border-emerald-500">
+                            <option value="1">zuweisen an: ${team1Str}</option>
+                            <option value="2">zuweisen an: ${team2Str}</option>
+                        </select>
+                    </div>
+                    <button onclick="generateSingleMatchUI(${index}); document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });" class="w-full bg-slate-600 hover:bg-emerald-600 text-white text-xs font-bold py-2 px-3 rounded-lg transition-colors flex items-center justify-center">
+                        <i class="fa-solid fa-play mr-2"></i> Nur diese Partie generieren
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
         function getPoints() {
             return {
                 "Jörg": parseInt(document.getElementById('pts-joerg').value) || 0,
@@ -142,6 +226,13 @@
                 "Thomas": parseInt(document.getElementById('pts-thomas').value) || 0,
                 "Theo": parseInt(document.getElementById('pts-theo').value) || 0
             };
+        }
+
+        function getClubOvr(clubName) {
+            for (const [ovr, clubs] of Object.entries(clubsDb)) {
+                if (clubs.includes(clubName)) return parseInt(ovr);
+            }
+            return BASE_OVR;
         }
 
         function getTeamForOvr(targetOvr, excludeTeam = null) {
@@ -173,8 +264,6 @@
 
                 if (fallbackTeams.length > 0) {
                     availableTeams = fallbackTeams;
-                    // Note: We visually still might output the fallback team's actual OVR, 
-                    // but for simplicity we'll just treat it as if it matches.
                 }
                 searchRadius++;
             }
@@ -200,14 +289,39 @@
             // Calculate difference
             let diff = ptsTeam1 - ptsTeam2;
 
-            // Calculate Target OVR
+            // Calculate base Target OVR
             let handicapSteps = Math.round(diff / PTS_PER_OVR_DROP);
             let targetOvr1 = BASE_OVR - handicapSteps;
             let targetOvr2 = BASE_OVR + handicapSteps;
+            let ovrDiff = targetOvr2 - targetOvr1;
 
-            // Assign Clubs
-            let club1 = getTeamForOvr(targetOvr1);
-            let club2 = getTeamForOvr(targetOvr2, club1);
+            let club1, club2;
+            
+            // Check Wunschteam
+            let wunschClubEl = document.getElementById('wunsch-club-' + index);
+            let wunschTeamEl = document.getElementById('wunsch-team-' + index);
+            let wunschClub = wunschClubEl ? wunschClubEl.value : "";
+            let wunschTarget = wunschTeamEl ? wunschTeamEl.value : "1";
+
+            if (wunschClub !== "") {
+                let wunschOvr = getClubOvr(wunschClub);
+                if (wunschTarget === "1") {
+                    club1 = wunschClub;
+                    // Team 2 needs to balance the handicap relative to Wunschteam
+                    club2 = getTeamForOvr(wunschOvr + ovrDiff, club1);
+                } else {
+                    club2 = wunschClub;
+                    // Team 1 needs to balance the handicap relative to Wunschteam
+                    club1 = getTeamForOvr(wunschOvr - ovrDiff, club2);
+                }
+            } else {
+                club1 = getTeamForOvr(targetOvr1);
+                club2 = getTeamForOvr(targetOvr2, club1);
+            }
+
+            // Aktuelle OVR der gepickten Teams abfragen für exakte Anzeige
+            let actualOvr1 = getClubOvr(club1);
+            let actualOvr2 = getClubOvr(club2);
 
             // Build inner HTML for the card
             return `
@@ -226,8 +340,8 @@
                     <div class="w-5/12 text-center">
                         <div class="text-sm text-slate-400 mb-1">${match.team1.join(' & ')}</div>
                         <div class="text-xl font-bold text-white leading-tight h-12 flex items-center justify-center">${club1}</div>
-                        <div class="mt-2 inline-block bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-bold text-yellow-500">
-                            OVR ~${Math.min(86, Math.max(74, targetOvr1))}
+                        <div class="mt-2 inline-block bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-bold ${wunschClub !== "" && wunschTarget === "1" ? 'text-emerald-400' : 'text-yellow-500'}">
+                            OVR ${actualOvr1} ${wunschClub !== "" && wunschTarget === "1" ? '<i class="fa-solid fa-star text-[10px] ml-1"></i>' : ''}
                         </div>
                         <div class="text-[10px] text-slate-500 mt-1">Summe Pkt: ${ptsTeam1}</div>
                     </div>
@@ -241,8 +355,8 @@
                     <div class="w-5/12 text-center">
                         <div class="text-sm text-slate-400 mb-1">${match.team2.join(' & ')}</div>
                         <div class="text-xl font-bold text-white leading-tight h-12 flex items-center justify-center">${club2}</div>
-                        <div class="mt-2 inline-block bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-bold text-yellow-500">
-                            OVR ~${Math.min(86, Math.max(74, targetOvr2))}
+                        <div class="mt-2 inline-block bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-bold ${wunschClub !== "" && wunschTarget === "2" ? 'text-emerald-400' : 'text-yellow-500'}">
+                            OVR ${actualOvr2} ${wunschClub !== "" && wunschTarget === "2" ? '<i class="fa-solid fa-star text-[10px] ml-1"></i>' : ''}
                         </div>
                         <div class="text-[10px] text-slate-500 mt-1">Summe Pkt: ${ptsTeam2}</div>
                     </div>
@@ -253,7 +367,10 @@
         function generateSingleMatchUI(index) {
             const card = document.getElementById('match-card-' + index);
             if (card) {
-                // Kurze Animation für visuelles Feedback
+                // Stellt sicher, dass das Ergebnisse-Feld und diese eine Karte sichtbar werden
+                document.getElementById('results').classList.remove('hidden');
+                card.classList.remove('hidden');
+
                 card.classList.add('opacity-50', 'scale-95');
                 setTimeout(() => {
                     card.innerHTML = generateSingleMatch(index);
@@ -263,23 +380,15 @@
         }
 
         function generateMatches() {
-            const container = document.getElementById('matches-container');
-            container.innerHTML = '';
-
+            // Generiert alle Partien auf einmal
             matchups.forEach((match, index) => {
-                const card = document.createElement('div');
-                card.id = 'match-card-' + index;
-                card.className = "bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg relative overflow-hidden group transition-all duration-200";
-                
-                card.innerHTML = generateSingleMatch(index);
-                container.appendChild(card);
+                generateSingleMatchUI(index);
             });
 
-            // Show results
-            document.getElementById('results').classList.remove('hidden');
-            
             // Smooth scroll to results
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(() => {
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         }
     </script>
 </body>
