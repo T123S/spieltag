@@ -13,7 +13,7 @@
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0f172a; /* Slate 900 */
+            background-color: #0f172a;
             color: #f8fafc;
         }
         h1, h2, h3, .match-vs {
@@ -24,331 +24,303 @@
             outline: none;
             box-shadow: 0 0 0 2px #10b981;
         }
-        /* Custom scrollbar for better look */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #1e293b; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
 
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
-        <header class="text-center mb-10 relative">
+        <header class="text-center mb-10">
             <h1 class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 mb-2">
                 <i class="fa-solid fa-gamepad mr-3 text-emerald-500"></i>FC 26
             </h1>
-            <h2 class="text-3xl text-slate-300 tracking-wider">Handicap Spieltags-Generator</h2>
-            <p class="text-slate-400 mt-2 text-sm max-w-xl mx-auto">
-                Basierend auf den aktuellen SoFIFA Ratings. Pro 3 Punkte Differenz in der Tabelle verschiebt sich die Teamstärke um +/- 1 OVR.
-            </p>
-            <div class="flex flex-col sm:flex-row justify-center items-center mt-6 space-y-3 sm:space-y-0 sm:space-x-4">
-                <button onclick="toggleHelp()" class="text-emerald-500 hover:text-emerald-400 text-sm font-semibold transition-colors flex items-center justify-center bg-slate-800/50 py-2 px-4 rounded-full border border-slate-700">
-                    <i class="fa-solid fa-circle-info mr-2"></i> Regelwerk
+            <h2 class="text-3xl text-slate-300 tracking-wider">Spieltags-Generator</h2>
+            <div class="flex justify-center mt-4">
+                <button onclick="toggleHelp()" class="text-emerald-500 hover:text-emerald-400 text-sm font-semibold flex items-center bg-slate-800/50 py-2 px-4 rounded-full border border-slate-700">
+                    <i class="fa-solid fa-circle-info mr-2"></i> Wie wird gerechnet?
                 </button>
-                
-                <div class="flex items-center space-x-2 bg-slate-800/50 py-1.5 px-3 rounded-full border border-slate-700">
-                    <span class="text-xs text-slate-400">Status:</span>
-                    <span id="db-status" class="text-xs font-bold text-emerald-400 tracking-wide">SoFIFA Synchron (Static)</span>
-                </div>
             </div>
         </header>
 
-        <!-- Input Section -->
+        <!-- Punkte-Eingabe -->
         <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700 mb-6">
-            <h3 class="text-2xl text-emerald-400 mb-4 border-b border-slate-700 pb-2"><i class="fa-solid fa-ranking-star mr-2"></i>Tabelle (Punkte)</h3>
-            
+            <h3 class="text-2xl text-emerald-400 mb-4 border-b border-slate-700 pb-2"><i class="fa-solid fa-ranking-star mr-2"></i>Aktuelle Tabellenpunkte</h3>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-slate-700 p-4 rounded-xl border border-slate-600/50">
-                    <label class="block text-sm font-semibold text-slate-300 mb-1">Jörg</label>
-                    <input type="number" id="pts-joerg" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Jörg</label>
+                    <input type="number" id="pts-joerg" value="0" class="player-input w-full bg-slate-800 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center">
                 </div>
-                <div class="bg-slate-700 p-4 rounded-xl border border-slate-600/50">
-                    <label class="block text-sm font-semibold text-slate-300 mb-1">Ronald</label>
-                    <input type="number" id="pts-ronald" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Ronald</label>
+                    <input type="number" id="pts-ronald" value="0" class="player-input w-full bg-slate-800 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center">
                 </div>
-                <div class="bg-slate-700 p-4 rounded-xl border border-slate-600/50">
-                    <label class="block text-sm font-semibold text-slate-300 mb-1">Thomas</label>
-                    <input type="number" id="pts-thomas" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Thomas</label>
+                    <input type="number" id="pts-thomas" value="0" class="player-input w-full bg-slate-800 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center">
                 </div>
-                <div class="bg-slate-700 p-4 rounded-xl border border-slate-600/50">
-                    <label class="block text-sm font-semibold text-slate-300 mb-1">Theo</label>
-                    <input type="number" id="pts-theo" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
-                </div>
-            </div>
-        </div>
-
-        <!-- Wunschvereine Section -->
-        <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700 mb-8 transition-all">
-            <button onclick="toggleWunschteams()" class="w-full flex justify-between items-center text-left focus:outline-none group">
-                <h3 class="text-2xl text-emerald-400 border-b border-transparent group-hover:border-slate-700 pb-1 transition-all font-['Teko'] uppercase tracking-wide"><i class="fa-solid fa-star mr-2"></i>Wunschvereine & Einzelwahl</h3>
-                <i id="wunschteams-chevron" class="fa-solid fa-chevron-down text-emerald-500 transition-transform duration-300"></i>
-            </button>
-            
-            <div id="wunschteams-content" class="hidden mt-4 pt-4 border-t border-slate-700">
-                <div id="wunschteams-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Wird per JS befüllt -->
+                <div class="bg-slate-900/50 p-3 rounded-xl border border-slate-700">
+                    <label class="block text-xs font-bold text-slate-400 mb-1">Theo</label>
+                    <input type="number" id="pts-theo" value="0" class="player-input w-full bg-slate-800 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center">
                 </div>
             </div>
         </div>
 
-        <button onclick="generateMatches()" class="mb-10 w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition hover:-translate-y-1 text-xl flex items-center justify-center">
-            <i class="fa-solid fa-rotate mr-2"></i> Kompletter Spieltag (6 Partien)
+        <!-- Optionen (Zuklappbar) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+            <!-- Wunschvereine -->
+            <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700">
+                <button onclick="toggleSection('wunsch-box')" class="w-full flex justify-between items-center group">
+                    <h3 class="text-xl text-emerald-400 font-['Teko'] uppercase"><i class="fa-solid fa-star mr-2"></i>Wunschteams</h3>
+                    <i id="wunsch-chevron" class="fa-solid fa-chevron-down text-slate-500 transition-transform"></i>
+                </button>
+                <div id="wunsch-box" class="hidden mt-4 space-y-3">
+                    <div id="wunsch-list" class="max-h-60 overflow-y-auto pr-2 space-y-2">
+                        <!-- Wird per JS befüllt -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor -->
+            <div class="bg-slate-800 rounded-2xl p-5 border border-slate-700">
+                <button onclick="toggleSection('editor-box')" class="w-full flex justify-between items-center group">
+                    <h3 class="text-xl text-blue-400 font-['Teko'] uppercase"><i class="fa-solid fa-pen-to-square mr-2"></i>Werte korrigieren</h3>
+                    <i id="editor-chevron" class="fa-solid fa-chevron-down text-slate-500 transition-transform"></i>
+                </button>
+                <div id="editor-box" class="hidden mt-4 space-y-3">
+                    <p class="text-[10px] text-slate-400 italic">Hier kannst du OVR-Werte an die aktuelle SoFIFA Seite anpassen:</p>
+                    <select id="edit-select" class="w-full bg-slate-900 border border-slate-600 rounded p-1.5 text-xs text-white outline-none"></select>
+                    <div class="flex space-x-2">
+                        <input type="number" id="edit-ovr" class="flex-1 bg-slate-900 border border-slate-600 rounded p-1.5 text-xs text-center font-bold text-emerald-400">
+                        <button onclick="saveEdit()" class="bg-blue-600 hover:bg-blue-500 px-4 py-1.5 rounded text-xs font-bold transition-colors">Speichern</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="generateAll()" class="w-full bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-500 hover:to-green-600 text-white font-bold py-4 rounded-xl shadow-2xl transform transition hover:-translate-y-1 text-xl uppercase tracking-widest mb-10">
+            <i class="fa-solid fa-bolt mr-2"></i> Spieltag generieren
         </button>
 
-        <!-- Results Section -->
-        <div id="results" class="hidden">
-            <h3 class="text-3xl text-center text-white mb-6 font-bold tracking-wider font-['Teko']"><i class="fa-regular fa-calendar-days mr-2 text-emerald-500"></i>Spielplan</h3>
-            <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
-                <!-- Matches will be injected here via JS -->
-            </div>
+        <!-- Ergebnisse -->
+        <div id="results-area" class="hidden">
+            <h3 class="text-3xl text-center text-white mb-6 font-['Teko']">Der Spielplan</h3>
+            <div id="match-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20"></div>
         </div>
-
     </div>
 
-    <!-- Help Modal -->
-    <div id="help-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 rounded-2xl p-6 max-w-lg w-full border border-slate-600 relative shadow-2xl">
-            <button onclick="toggleHelp()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            <h3 class="text-3xl text-emerald-400 mb-4 font-['Teko'] uppercase tracking-wide"><i class="fa-solid fa-scale-balanced mr-2"></i>Das Handicap-System</h3>
-            <div class="text-slate-300 space-y-3 text-sm leading-relaxed">
-                <p>Das Programm berechnet für jedes Team die Summe der Tabellenpunkte. Die Differenz beider Teams bestimmt das OVR-Handicap.</p>
-                <ul class="list-disc list-inside space-y-1 ml-2">
-                    <li><strong>Basis-OVR:</strong> 80</li>
-                    <li><strong>Handicap:</strong> ±1 OVR pro 3 Punkte Differenz.</li>
-                    <li><strong>Wunschteams:</strong> Wählst du einen Club fest aus, passt sich der Gegner automatisch an, um die Balance zu wahren.</li>
-                </ul>
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 mt-3 text-emerald-100 italic">
-                    Beispiel: Team A hat 15 Pkt, Team B hat 6 Pkt. Differenz = 9. Team A bekommt ein OVR -3 Team (77), Team B ein OVR +3 Team (83).
+    <!-- Modal -->
+    <div id="help-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-2xl p-8 max-w-lg w-full border border-slate-600 relative">
+            <button onclick="toggleHelp()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            <h3 class="text-3xl text-emerald-400 mb-4 font-['Teko'] uppercase">Handicap-Formel</h3>
+            <div class="text-slate-300 space-y-4 text-sm leading-relaxed">
+                <p>Das Programm berechnet die Summe der Tabellenpunkte für jedes 2er-Team.</p>
+                <p>Die Differenz wird durch <strong>3</strong> geteilt und gerundet. Das ist das Handicap.</p>
+                <div class="bg-slate-900 p-4 rounded-lg border border-slate-700 font-mono text-emerald-400">
+                    OVR Team A = 80 - Handicap<br>
+                    OVR Team B = 80 + Handicap
                 </div>
+                <p class="text-xs text-slate-500 italic pt-4 border-t border-slate-700">Werte basieren auf der Saison 24/25. Nutzen Sie den Editor rechts, um wöchentliche Updates von SoFIFA einzupflegen.</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Aktuelle Datenbank basierend auf SoFIFA Ratings
-        const offlineDb = {
+        // Datenbank basierend auf SoFIFA FC 25/26 (inkl. 1. & 2. Bundesliga)
+        let db = {
             86: ["Real Madrid", "Manchester City"],
-            85: ["Bayern München", "Bayer Leverkusen", "FC Liverpool", "FC Arsenal", "FC Barcelona", "Inter Mailand"],
+            85: ["FC Bayern München", "Bayer 04 Leverkusen", "FC Liverpool", "FC Arsenal", "FC Barcelona", "Inter Mailand"],
             84: ["Paris Saint-Germain", "Atletico Madrid"],
             83: ["Borussia Dortmund", "Juventus Turin", "AC Mailand", "Aston Villa", "Tottenham Hotspur", "Newcastle United", "Manchester United"],
             82: ["RB Leipzig", "SSC Neapel", "Lazio Rom", "AS Rom", "FC Chelsea", "Real Sociedad", "Athletic Bilbao", "Sporting CP", "Benfica Lissabon", "FC Porto"],
             81: ["VfB Stuttgart", "Eintracht Frankfurt", "West Ham United", "Brighton & Hove Albion", "Olympique Marseille", "AS Monaco", "Olympique Lyon", "PSV Eindhoven", "Galatasaray", "Fenerbahce"],
-            80: ["SC Freiburg", "LOSC Lille", "FC Villarreal", "Betis Sevilla", "Girona FC", "Ajax Amsterdam", "Feyenoord Rotterdam", "FC Bologna"],
-            79: ["Werder Bremen", "VfL Wolfsburg", "TSG Hoffenheim", "Borussia M'gladbach", "Fulham", "Nottingham Forest", "Crystal Palace", "Besiktas JK", "RC Lens", "FC Turin"],
-            78: ["FC Augsburg", "1. FSV Mainz 05", "Union Berlin", "Everton", "Wolverhampton Wanderers", "Sevilla FC", "Valencia CF", "Atalanta Bergamo", "AC Florenz"],
-            77: ["1. FC Heidenheim", "FC St. Pauli", "VfL Bochum", "AFC Bournemouth", "FC Brentford", "Leicester City", "RCD Mallorca", "UD Las Palmas", "CA Osasuna", "FC Toulouse", "Hellas Verona", "FC Empoli"],
-            76: ["Holstein Kiel", "Genoa CFC", "Udinese Calcio", "RC Strasbourg", "HSC Montpellier", "FC Nantes", "OGC Nizza"],
-            75: ["FC Southampton", "Ipswich Town", "Parma Calcio", "Como 1907", "Venezia FC", "RCD Espanyol"],
-            // 2. Bundesliga & Internationales Mittelfeld
-            74: ["1. FC Köln", "Hamburger SV", "FC Burnley", "Sheffield United", "Luton Town"],
-            73: ["Hertha BSC", "Fortuna Düsseldorf", "Hannover 96", "SV Darmstadt 98", "Middlesbrough FC"],
-            72: ["FC Schalke 04", "Karlsruher SC", "SC Paderborn 07", "1. FC Kaiserslautern", "1. FC Nürnberg", "SpVgg Greuther Fürth", "SV Elversberg"],
-            71: ["1. FC Magdeburg", "Eintracht Braunschweig", "Preußen Münster", "SSV Ulm 1846"],
-            70: ["Jahn Regensburg", "Stoke City", "Hull City", "Watford FC"],
-            69: ["Arminia Bielefeld", "Dynamo Dresden", "TSV 1860 München"]
+            80: ["SC Freiburg", "LOSC Lille", "FC Villarreal", "Real Betis", "Girona FC", "Ajax Amsterdam", "Feyenoord Rotterdam", "FC Bologna", "Atalanta Bergamo"],
+            79: ["Werder Bremen", "VfL Wolfsburg", "TSG Hoffenheim", "Borussia M'gladbach", "Fulham FC", "Nottingham Forest", "Crystal Palace", "Besiktas JK", "RC Lens", "FC Turin"],
+            78: ["FC Augsburg", "1. FSV Mainz 05", "1. FC Union Berlin", "Everton FC", "Wolverhampton Wanderers", "FC Sevilla", "Valencia CF", "AC Florenz", "Udinese Calcio"],
+            77: ["1. FC Heidenheim", "FC St. Pauli", "VfL Bochum", "Holstein Kiel", "AFC Bournemouth", "Brentford FC", "Leicester City", "RCD Mallorca", "UD Las Palmas", "CA Osasuna", "FC Toulouse", "Hellas Verona", "FC Empoli"],
+            76: ["OGC Nizza", "Genoa CFC", "RC Strasbourg", "Montpellier HSC", "FC Nantes", "Stade Reims", "Como 1907"],
+            75: ["FC Southampton", "Ipswich Town", "Parma Calcio", "Venezia FC", "RCD Espanyol", "Getafe CF", "Real Valladolid"],
+            74: ["1. FC Köln", "Hamburger SV", "Hertha BSC", "Burnley FC", "Sheffield United", "Luton Town", "Middlesbrough FC"],
+            73: ["Fortuna Düsseldorf", "Hannover 96", "SV Darmstadt 98", "FC Schalke 04", "Hull City", "Coventry City", "Leeds United"],
+            72: ["Karlsruher SC", "SC Paderborn 07", "1. FC Kaiserslautern", "1. FC Nürnberg", "SpVgg Greuther Fürth", "SV Elversberg", "Norwich City"],
+            71: ["1. FC Magdeburg", "Eintracht Braunschweig", "Preußen Münster", "SSV Ulm 1846", "Stoke City", "Watford FC"],
+            70: ["Jahn Regensburg", "FC Portsmouth", "Queens Park Rangers", "Swansea City"],
+            69: ["Arminia Bielefeld", "Dynamo Dresden", "TSV 1860 München", "SV Sandhausen", "Hansa Rostock"]
         };
 
-        const matchups = [
-            { id: 1, team1: ["Ronald", "Theo"], team2: ["Thomas", "Jörg"] },
-            { id: 2, team1: ["Ronald", "Jörg"], team2: ["Thomas", "Theo"] },
-            { id: 3, team1: ["Jörg", "Theo"], team2: ["Thomas", "Ronald"] },
-            { id: 4, team1: ["Thomas", "Jörg"], team2: ["Ronald", "Theo"] },
-            { id: 5, team1: ["Thomas", "Theo"], team2: ["Ronald", "Jörg"] },
-            { id: 6, team1: ["Thomas", "Ronald"], team2: ["Jörg", "Theo"] }
+        const pairings = [
+            { id: 1, t1: ["Ronald", "Theo"], t2: ["Thomas", "Jörg"] },
+            { id: 2, t1: ["Ronald", "Jörg"], t2: ["Thomas", "Theo"] },
+            { id: 3, t1: ["Jörg", "Theo"], t2: ["Thomas", "Ronald"] },
+            { id: 4, t1: ["Thomas", "Jörg"], t2: ["Ronald", "Theo"] },
+            { id: 5, t1: ["Thomas", "Theo"], t2: ["Ronald", "Jörg"] },
+            { id: 6, t1: ["Thomas", "Ronald"], t2: ["Jörg", "Theo"] }
         ];
 
-        const BASE_OVR = 80;
-        const PTS_PER_OVR_DROP = 3;
-
         document.addEventListener('DOMContentLoaded', () => {
-            initResultCards();
-            initWunschteams();
+            refreshWunschUI();
+            refreshEditorUI();
         });
 
-        function initResultCards() {
-            const container = document.getElementById('matches-container');
-            container.innerHTML = '';
-            matchups.forEach((_, index) => {
-                const card = document.createElement('div');
-                card.id = 'match-card-' + index;
-                card.className = "hidden bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg relative overflow-hidden group transition-all duration-200";
-                container.appendChild(card);
-            });
+        function toggleSection(id) {
+            document.getElementById(id).classList.toggle('hidden');
+            const chev = document.getElementById(id.split('-')[0] + '-chevron');
+            if (chev) chev.classList.toggle('rotate-180');
         }
 
-        function toggleWunschteams() {
-            const content = document.getElementById('wunschteams-content');
-            const chevron = document.getElementById('wunschteams-chevron');
-            content.classList.toggle('hidden');
-            chevron.classList.toggle('rotate-180');
+        function toggleHelp() {
+            document.getElementById('help-modal').classList.toggle('hidden');
         }
 
-        function initWunschteams() {
-            const container = document.getElementById('wunschteams-container');
-            container.innerHTML = '';
-            
-            let clubsFlat = [];
-            for (const [ovr, clubs] of Object.entries(offlineDb)) {
-                clubs.forEach(c => clubsFlat.push({name: c, ovr: parseInt(ovr)}));
+        function getAllClubs() {
+            let list = [];
+            for (let ovr in db) {
+                db[ovr].forEach(name => list.push({name, ovr: parseInt(ovr)}));
             }
-            clubsFlat.sort((a, b) => b.ovr - a.ovr || a.name.localeCompare(b.name));
-            
-            let clubOptions = `<option value="">-- Zufall --</option>`;
-            clubsFlat.forEach(c => {
-                clubOptions += `<option value="${c.name}">${c.name} (OVR ${c.ovr})</option>`;
-            });
+            return list.sort((a,b) => b.ovr - a.ovr || a.name.localeCompare(b.name));
+        }
 
-            matchups.forEach((match, index) => {
-                const team1Str = match.team1.join(' & ');
-                const team2Str = match.team2.join(' & ');
-                
+        function refreshWunschUI() {
+            const list = document.getElementById('wunsch-list');
+            list.innerHTML = '';
+            const clubs = getAllClubs();
+            let options = `<option value="">-- Zufall --</option>`;
+            clubs.forEach(c => options += `<option value="${c.name}">${c.name} (${c.ovr})</option>`);
+
+            pairings.forEach((p, i) => {
                 const div = document.createElement('div');
-                div.className = "bg-slate-700/50 p-4 rounded-xl border border-slate-600";
+                div.className = "bg-slate-900 p-2 rounded border border-slate-700 flex items-center space-x-2";
                 div.innerHTML = `
-                    <div class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-tighter">
-                        Partie ${match.id}: ${team1Str} vs ${team2Str}
-                    </div>
-                    <div class="flex space-x-2">
-                        <select id="wunsch-club-${index}" class="flex-1 bg-slate-900 border border-slate-600 rounded-lg py-1.5 px-3 text-white text-xs focus:outline-none focus:border-emerald-500">
-                            ${clubOptions}
-                        </select>
-                        <select id="wunsch-team-${index}" class="w-24 bg-slate-900 border border-slate-600 rounded-lg py-1.5 px-3 text-white text-[10px] focus:outline-none focus:border-emerald-500">
-                            <option value="1">Team 1</option>
-                            <option value="2">Team 2</option>
-                        </select>
-                        <button onclick="generateSingleMatchUI(${index})" class="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-lg transition-colors shadow-lg">
-                            <i class="fa-solid fa-play"></i>
-                        </button>
-                    </div>
+                    <span class="text-[9px] font-bold text-slate-500 w-6">#${p.id}</span>
+                    <select id="w-club-${i}" class="flex-1 bg-slate-800 border border-slate-600 rounded text-[10px] py-1 text-white outline-none focus:border-emerald-500">${options}</select>
+                    <select id="w-side-${i}" class="w-16 bg-slate-800 border border-slate-600 rounded text-[10px] py-1 text-white outline-none">
+                        <option value="1">Team 1</option><option value="2">Team 2</option>
+                    </select>
                 `;
-                container.appendChild(div);
+                list.appendChild(div);
             });
         }
 
-        function getPoints() {
-            return {
+        function refreshEditorUI() {
+            const sel = document.getElementById('edit-select');
+            const clubs = getAllClubs();
+            sel.innerHTML = '';
+            clubs.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.name;
+                opt.textContent = `${c.name} (${c.ovr})`;
+                sel.appendChild(opt);
+            });
+            sel.addEventListener('change', () => {
+                document.getElementById('edit-ovr').value = getOvr(sel.value);
+            });
+            if (sel.value) document.getElementById('edit-ovr').value = getOvr(sel.value);
+        }
+
+        function getOvr(name) {
+            for (let ovr in db) if (db[ovr].includes(name)) return parseInt(ovr);
+            return 80;
+        }
+
+        function saveEdit() {
+            const name = document.getElementById('edit-select').value;
+            const newOvr = parseInt(document.getElementById('edit-ovr').value);
+            if (!name || isNaN(newOvr)) return;
+
+            for (let ovr in db) db[ovr] = db[ovr].filter(c => c !== name);
+            if (!db[newOvr]) db[newOvr] = [];
+            db[newOvr].push(name);
+            
+            refreshWunschUI();
+            refreshEditorUI();
+            alert(`${name} ist jetzt auf OVR ${newOvr}`);
+        }
+
+        function getTeam(target, exclude = null) {
+            const keys = Object.keys(db).map(Number).sort((a,b) => a-b);
+            let ovr = Math.max(keys[0], Math.min(target, keys[keys.length-1]));
+            
+            let list = db[ovr] || [];
+            if (exclude) list = list.filter(c => c !== exclude);
+
+            let radius = 1;
+            while (list.length === 0 && radius < 20) {
+                let low = ovr - radius, high = ovr + radius;
+                let pool = [];
+                if (db[low]) pool.push(...db[low]);
+                if (db[high]) pool.push(...db[high]);
+                if (exclude) pool = pool.filter(c => c !== exclude);
+                if (pool.length > 0) { list = pool; break; }
+                radius++;
+            }
+            return list[Math.floor(Math.random() * list.length)];
+        }
+
+        function generateAll() {
+            const grid = document.getElementById('match-grid');
+            grid.innerHTML = '';
+            const pts = {
                 "Jörg": parseInt(document.getElementById('pts-joerg').value) || 0,
                 "Ronald": parseInt(document.getElementById('pts-ronald').value) || 0,
                 "Thomas": parseInt(document.getElementById('pts-thomas').value) || 0,
                 "Theo": parseInt(document.getElementById('pts-theo').value) || 0
             };
-        }
 
-        function getClubOvr(clubName) {
-            for (const [ovr, clubs] of Object.entries(offlineDb)) {
-                if (clubs.includes(clubName)) return parseInt(ovr);
-            }
-            return BASE_OVR;
-        }
+            pairings.forEach((p, i) => {
+                let sum1 = p.t1.reduce((s, name) => s + pts[name], 0);
+                let sum2 = p.t2.reduce((s, name) => s + pts[name], 0);
+                let diff = sum1 - sum2;
+                let handicap = Math.round(diff / 3);
 
-        function getTeamForOvr(targetOvr, excludeTeam = null) {
-            let ovrKeys = Object.keys(offlineDb).map(Number).sort((a,b) => a-b);
-            let minOvr = ovrKeys[0];
-            let maxOvr = ovrKeys[ovrKeys.length-1];
-            let ovr = Math.max(minOvr, Math.min(targetOvr, maxOvr));
-            
-            let availableTeams = offlineDb[ovr] || [];
-            if (excludeTeam) availableTeams = availableTeams.filter(t => t !== excludeTeam);
+                let ovrDiff = (80 + handicap) - (80 - handicap); // theoretisches delta
+                
+                let c1, c2;
+                let wClub = document.getElementById('w-club-' + i).value;
+                let wSide = document.getElementById('w-side-' + i).value;
 
-            let searchRadius = 1;
-            while (availableTeams.length === 0 && searchRadius < 20) {
-                let checkLower = ovr - searchRadius;
-                let checkUpper = ovr + searchRadius;
-                let combined = [];
-                if (offlineDb[checkLower]) combined.push(...offlineDb[checkLower]);
-                if (offlineDb[checkUpper]) combined.push(...offlineDb[checkUpper]);
-                if (excludeTeam) combined = combined.filter(t => t !== excludeTeam);
-                if (combined.length > 0) {
-                    availableTeams = combined;
-                    break;
-                }
-                searchRadius++;
-            }
-            return availableTeams[Math.floor(Math.random() * availableTeams.length)];
-        }
-
-        function generateSingleMatch(index) {
-            const pts = getPoints();
-            const match = matchups[index];
-            let ptsT1 = match.team1.reduce((sum, p) => sum + pts[p], 0);
-            let ptsT2 = match.team2.reduce((sum, p) => sum + pts[p], 0);
-            let diff = ptsT1 - ptsT2;
-            let handicapSteps = Math.round(diff / PTS_PER_OVR_DROP);
-            
-            let targetOvr1 = BASE_OVR - handicapSteps;
-            let targetOvr2 = BASE_OVR + handicapSteps;
-            let ovrDiff = targetOvr2 - targetOvr1;
-
-            let club1, club2;
-            let wunschClub = document.getElementById('wunsch-club-' + index).value;
-            let wunschTarget = document.getElementById('wunsch-team-' + index).value;
-
-            if (wunschClub !== "") {
-                let wOvr = getClubOvr(wunschClub);
-                if (wunschTarget === "1") {
-                    club1 = wunschClub;
-                    club2 = getTeamForOvr(wOvr + ovrDiff, club1);
+                if (wClub) {
+                    let wOvr = getOvr(wClub);
+                    if (wSide === "1") {
+                        c1 = wClub;
+                        c2 = getTeam(wOvr + ovrDiff, c1);
+                    } else {
+                        c2 = wClub;
+                        c1 = getTeam(wOvr - ovrDiff, c2);
+                    }
                 } else {
-                    club2 = wunschClub;
-                    club1 = getTeamForOvr(wOvr - ovrDiff, club2);
+                    c1 = getTeam(80 - handicap);
+                    c2 = getTeam(80 + handicap, c1);
                 }
-            } else {
-                club1 = getTeamForOvr(targetOvr1);
-                club2 = getTeamForOvr(targetOvr2, club1);
-            }
 
-            let actOvr1 = getClubOvr(club1);
-            let actOvr2 = getClubOvr(club2);
-
-            return `
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-blue-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                <button onclick="generateSingleMatchUI(${index})" class="absolute top-3 right-3 text-slate-500 hover:text-emerald-400 hover:rotate-180 transition-all duration-300 z-10">
-                    <i class="fa-solid fa-arrows-rotate text-lg"></i>
-                </button>
-                <div class="text-center mb-4 text-emerald-500 font-bold text-sm tracking-widest uppercase italic">Partie ${match.id} ${match.id > 3 ? '(Rückspiel)' : '(Hinspiel)'}</div>
-                <div class="flex justify-between items-center">
-                    <div class="w-5/12 text-center">
-                        <div class="text-[10px] text-slate-500 mb-1 font-bold">${match.team1.join(' & ')}</div>
-                        <div class="text-lg font-bold text-white leading-tight min-h-[3rem] flex items-center justify-center">${club1}</div>
-                        <div class="mt-2 inline-block bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs font-bold text-emerald-400">OVR ${actOvr1}</div>
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg relative overflow-hidden group";
+                card.innerHTML = `
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-blue-500 opacity-20 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="text-center mb-4 text-emerald-500 font-bold text-xs tracking-widest uppercase">Partie ${p.id}</div>
+                    <div class="flex justify-between items-center">
+                        <div class="w-5/12 text-center">
+                            <div class="text-[9px] text-slate-500 mb-1 font-bold italic">${p.t1.join(' & ')}</div>
+                            <div class="text-lg font-bold text-white h-12 flex items-center justify-center leading-tight">${c1}</div>
+                            <div class="mt-2 inline-block bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-[10px] font-bold text-emerald-400">OVR ${getOvr(c1)}</div>
+                        </div>
+                        <div class="w-2/12 text-center flex flex-col items-center">
+                            <span class="match-vs text-2xl text-slate-700">VS</span>
+                        </div>
+                        <div class="w-5/12 text-center">
+                            <div class="text-[9px] text-slate-500 mb-1 font-bold italic">${p.t2.join(' & ')}</div>
+                            <div class="text-lg font-bold text-white h-12 flex items-center justify-center leading-tight">${c2}</div>
+                            <div class="mt-2 inline-block bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-[10px] font-bold text-emerald-400">OVR ${getOvr(c2)}</div>
+                        </div>
                     </div>
-                    <div class="w-2/12 text-center flex flex-col items-center">
-                        <span class="match-vs text-2xl text-slate-700">VS</span>
-                        <div class="text-[8px] text-slate-600 mt-1 uppercase font-bold">Diff: ${Math.abs(diff)}</div>
-                    </div>
-                    <div class="w-5/12 text-center">
-                        <div class="text-[10px] text-slate-500 mb-1 font-bold">${match.team2.join(' & ')}</div>
-                        <div class="text-lg font-bold text-white leading-tight min-h-[3rem] flex items-center justify-center">${club2}</div>
-                        <div class="mt-2 inline-block bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs font-bold text-emerald-400">OVR ${actOvr2}</div>
-                    </div>
-                </div>
-            `;
-        }
+                `;
+                grid.appendChild(card);
+            });
 
-        function generateSingleMatchUI(index) {
-            const card = document.getElementById('match-card-' + index);
-            if (card) {
-                document.getElementById('results').classList.remove('hidden');
-                card.classList.remove('hidden');
-                card.classList.add('opacity-50', 'scale-95');
-                setTimeout(() => {
-                    card.innerHTML = generateSingleMatch(index);
-                    card.classList.remove('opacity-50', 'scale-95');
-                }, 150);
-            }
-        }
-
-        function generateMatches() {
-            matchups.forEach((_, index) => generateSingleMatchUI(index));
-            setTimeout(() => {
-                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 200);
-        }
-
-        function toggleHelp() {
-            document.getElementById('help-modal').classList.toggle('hidden');
+            document.getElementById('results-area').classList.remove('hidden');
+            window.scrollTo({ top: document.getElementById('results-area').offsetTop - 20, behavior: 'smooth' });
         }
     </script>
 </body>
