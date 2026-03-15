@@ -30,7 +30,7 @@
 
     <div class="max-w-4xl mx-auto">
         <!-- Header -->
-        <header class="text-center mb-10">
+        <header class="text-center mb-10 relative">
             <h1 class="text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-600 mb-2">
                 <i class="fa-solid fa-gamepad mr-3 text-emerald-500"></i>FC 26
             </h1>
@@ -38,9 +38,19 @@
             <p class="text-slate-400 mt-2 text-sm max-w-xl mx-auto">
                 Trage die aktuellen Punkte der Tabelle ein. Das System berechnet ausgeglichene Teams basierend auf der Gesamtpunktzahl der jeweiligen 2er-Teams. Basis-Stärke ist OVR 80.
             </p>
-            <button onclick="toggleHelp()" class="mt-4 text-emerald-500 hover:text-emerald-400 text-sm font-semibold transition-colors flex items-center justify-center mx-auto">
-                <i class="fa-solid fa-circle-info mr-2"></i> Wie funktioniert das Handicap?
-            </button>
+            <div class="flex flex-col sm:flex-row justify-center items-center mt-6 space-y-3 sm:space-y-0 sm:space-x-4">
+                <button onclick="toggleHelp()" class="text-emerald-500 hover:text-emerald-400 text-sm font-semibold transition-colors flex items-center justify-center bg-slate-800/50 py-2 px-4 rounded-full border border-slate-700">
+                    <i class="fa-solid fa-circle-info mr-2"></i> Wie funktioniert das Handicap?
+                </button>
+                
+                <div class="flex items-center space-x-2 bg-slate-800/50 py-1.5 px-3 rounded-full border border-slate-700">
+                    <span class="text-xs text-slate-400">DB Status:</span>
+                    <span id="db-status" class="text-xs font-bold text-slate-300">Offline (Standard)</span>
+                    <button id="btn-update-db" onclick="fetchLiveTeams()" class="ml-2 text-blue-400 hover:text-blue-300 text-xs font-bold transition-colors flex items-center" title="Live OVR-Werte von SoFIFA abrufen">
+                        <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Live-Daten abrufen
+                    </button>
+                </div>
+            </div>
         </header>
 
         <!-- Input Section -->
@@ -121,23 +131,29 @@
         </div>
     </div>
 
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
     <script>
-        // Club Database classified by Approx. Overall Rating (OVR)
-        const clubsDb = {
+        // Erweitere Offline-Datenbank als starkes Fallback
+        const offlineDb = {
             86: ["Manchester City", "Real Madrid"],
             85: ["Bayern München", "FC Liverpool", "FC Arsenal"],
             84: ["FC Barcelona", "Paris SG", "Inter Mailand", "Bayer Leverkusen"],
-            83: ["Atletico Madrid", "Juventus Turin", "AC Mailand", "Borussia Dortmund"],
-            82: ["RB Leipzig", "SSC Neapel", "Aston Villa", "Tottenham Hotspur", "Newcastle United"],
-            81: ["AS Rom", "Lazio Rom", "FC Chelsea", "Manchester United"],
-            80: ["Eintracht Frankfurt", "West Ham United", "Real Sociedad", "Galatasaray"],
-            79: ["VfB Stuttgart", "Fenerbahce", "PSV Eindhoven", "Sporting CP"],
-            78: ["SC Freiburg", "Betis Sevilla", "FC Porto", "Benfica Lissabon", "Athletic Bilbao"],
-            77: ["VfL Wolfsburg", "Werder Bremen", "Ajax Amsterdam", "FC Girona"],
-            76: ["FC Augsburg", "1. FSV Mainz 05", "Union Berlin", "FC Turin"],
-            75: ["VfL Bochum", "FC St. Pauli", "Holstein Kiel", "RCD Mallorca"],
-            74: ["1. FC Heidenheim", "FC Empoli", "Deportivo Alaves"]
+            83: ["Atletico Madrid", "Juventus Turin", "AC Mailand", "Borussia Dortmund", "Aston Villa", "Newcastle United"],
+            82: ["RB Leipzig", "SSC Neapel", "Tottenham Hotspur", "Lazio Rom", "AS Rom"],
+            81: ["FC Chelsea", "Manchester United", "Real Sociedad", "Galatasaray", "Fenerbahce"],
+            80: ["Eintracht Frankfurt", "West Ham United", "PSV Eindhoven", "Sporting CP", "Benfica Lissabon", "FC Porto", "Athletic Bilbao"],
+            79: ["VfB Stuttgart", "Olympique Marseille", "Olympique Lyon", "AS Monaco", "Betis Sevilla", "FC Villarreal"],
+            78: ["SC Freiburg", "FC Sevilla", "AC Florenz", "Atalanta Bergamo", "Ajax Amsterdam", "Feyenoord Rotterdam"],
+            77: ["VfL Wolfsburg", "Werder Bremen", "FC Girona", "FC Turin", "Besiktas"],
+            76: ["FC Augsburg", "1. FSV Mainz 05", "Union Berlin", "Borussia M'gladbach", "TSG Hoffenheim"],
+            75: ["VfL Bochum", "FC St. Pauli", "Holstein Kiel", "RCD Mallorca", "FC Empoli"],
+            74: ["1. FC Heidenheim", "Deportivo Alaves", "FC Nantes", "Hellas Verona"]
         };
+
+        // Dies ist die aktive Datenbank (Standardmäßig Offline, kann durch Live-Fetch überschrieben werden)
+        let clubsDb = JSON.parse(JSON.stringify(offlineDb));
 
         // The 6 Matchups defined by the user
         const matchups = [
@@ -179,6 +195,7 @@
 
         function initWunschteams() {
             const container = document.getElementById('wunschteams-container');
+            container.innerHTML = ''; // Wichtig: Zurücksetzen falls DB aktualisiert wird
             
             // Generate flat list of clubs for the dropdowns
             let clubsFlat = [];
@@ -217,6 +234,110 @@
                 `;
                 container.appendChild(div);
             });
+        }
+
+        // --- NEU: Live Fetch Logik ---
+        async function fetchLiveTeams() {
+            const btn = document.getElementById('btn-update-db');
+            const statusLabel = document.getElementById('db-status');
+            const icon = btn.querySelector('i');
+            
+            icon.classList.add('fa-spin');
+            btn.disabled = true;
+            statusLabel.innerHTML = '<span class="text-yellow-400">Wird geladen...</span>';
+            showToast("Lade Live-Daten von SoFIFA (Top 180 Teams)...", "info");
+
+            try {
+                let newDb = {};
+                // Wir laden die ersten 3 Seiten (0, 60, 120) = ca. 180 Teams
+                for (let offset of [0, 60, 120]) {
+                    // Nutzung eines öffentlichen CORS-Proxys, um die SoFIFA-Seite laden zu dürfen
+                    let targetUrl = `https://sofifa.com/teams?type=club&offset=${offset}`;
+                    let proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+                    
+                    let res = await fetch(proxyUrl);
+                    if (!res.ok) throw new Error("Netzwerkfehler beim Proxy");
+                    
+                    let data = await res.json();
+                    
+                    // HTML parsen
+                    let parser = new DOMParser();
+                    let doc = parser.parseFromString(data.contents, 'text/html');
+                    
+                    // Tabellen-Reihen durchsuchen
+                    let rows = doc.querySelectorAll('table tbody tr');
+                    rows.forEach(row => {
+                        // SoFIFA HTML Struktur (kann sich theoretisch ändern)
+                        let nameEl = row.querySelector('td.col-name-wide a div.ellipsis') || row.querySelector('td.col-name-wide a');
+                        let ovrEl = row.querySelector('td[data-col="oa"]');
+                        
+                        if (nameEl && ovrEl) {
+                            let name = nameEl.textContent.trim();
+                            let ovr = parseInt(ovrEl.textContent.trim());
+                            
+                            // Bereinigen von komischen Zeichen
+                            name = name.replace(/\s+/g, ' '); 
+
+                            if (!isNaN(ovr) && name.length > 0) {
+                                if (!newDb[ovr]) newDb[ovr] = [];
+                                if (!newDb[ovr].includes(name)) newDb[ovr].push(name);
+                            }
+                        }
+                    });
+                }
+                
+                // Prüfen ob wir genug Teams gefunden haben (Sicherheits-Check)
+                let teamCount = Object.values(newDb).flat().length;
+                if (teamCount > 100) {
+                    clubsDb = newDb; // Überschreibe lokale DB mit Live DB
+                    statusLabel.innerHTML = `<span class="text-emerald-400">Live (${teamCount} Teams)</span>`;
+                    initWunschteams(); // Dropdowns aktualisieren
+                    showToast(`Erfolgreich aktualisiert! ${teamCount} Teams geladen.`, "success");
+                } else {
+                    throw new Error("Zu wenig Teams gefunden. Evtl. wurde die SoFIFA Struktur geändert.");
+                }
+
+            } catch (err) {
+                console.error("Live Update Fehler:", err);
+                statusLabel.innerHTML = `<span class="text-red-400">Fehler (Offline DB aktiv)</span>`;
+                showToast("Fehler beim Abrufen der Live-Daten. SoFIFA blockiert möglicherweise die Anfrage. Offline-DB wird genutzt.", "error");
+            } finally {
+                icon.classList.remove('fa-spin');
+                btn.disabled = false;
+            }
+        }
+
+        // --- NEU: Toast Notifications ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgColor = 'bg-blue-600';
+            let icon = 'fa-circle-info';
+            
+            if (type === 'success') {
+                bgColor = 'bg-emerald-600';
+                icon = 'fa-check-circle';
+            } else if (type === 'error') {
+                bgColor = 'bg-red-600';
+                icon = 'fa-circle-exclamation';
+            }
+
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300 opacity-0 transform translate-y-4`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i><span class="text-sm font-semibold">${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Fade In
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-4');
+            }, 10);
+            
+            // Fade Out and remove
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            }, type === 'error' ? 6000 : 4000); // Errors show longer
         }
 
         function getPoints() {
