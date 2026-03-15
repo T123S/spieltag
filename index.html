@@ -24,6 +24,11 @@
             outline: none;
             box-shadow: 0 0 0 2px #10b981;
         }
+        /* Custom scrollbar for better look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
     </style>
 </head>
 <body class="min-h-screen p-4 md:p-8">
@@ -36,41 +41,38 @@
             </h1>
             <h2 class="text-3xl text-slate-300 tracking-wider">Handicap Spieltags-Generator</h2>
             <p class="text-slate-400 mt-2 text-sm max-w-xl mx-auto">
-                Trage die aktuellen Punkte der Tabelle ein. Das System berechnet ausgeglichene Teams basierend auf der Gesamtpunktzahl der jeweiligen 2er-Teams. Basis-Stärke ist OVR 80.
+                Basierend auf den aktuellen SoFIFA Ratings. Pro 3 Punkte Differenz in der Tabelle verschiebt sich die Teamstärke um +/- 1 OVR.
             </p>
             <div class="flex flex-col sm:flex-row justify-center items-center mt-6 space-y-3 sm:space-y-0 sm:space-x-4">
                 <button onclick="toggleHelp()" class="text-emerald-500 hover:text-emerald-400 text-sm font-semibold transition-colors flex items-center justify-center bg-slate-800/50 py-2 px-4 rounded-full border border-slate-700">
-                    <i class="fa-solid fa-circle-info mr-2"></i> Wie funktioniert das Handicap?
+                    <i class="fa-solid fa-circle-info mr-2"></i> Regelwerk
                 </button>
                 
                 <div class="flex items-center space-x-2 bg-slate-800/50 py-1.5 px-3 rounded-full border border-slate-700">
-                    <span class="text-xs text-slate-400">DB Status:</span>
-                    <span id="db-status" class="text-xs font-bold text-slate-300">Offline (Standard)</span>
-                    <button id="btn-update-db" onclick="fetchLiveTeams()" class="ml-2 text-blue-400 hover:text-blue-300 text-xs font-bold transition-colors flex items-center" title="Live OVR-Werte von SoFIFA abrufen">
-                        <i class="fa-solid fa-cloud-arrow-down mr-1"></i> Live-Daten abrufen
-                    </button>
+                    <span class="text-xs text-slate-400">Status:</span>
+                    <span id="db-status" class="text-xs font-bold text-emerald-400 tracking-wide">SoFIFA Synchron (Static)</span>
                 </div>
             </div>
         </header>
 
         <!-- Input Section -->
         <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700 mb-6">
-            <h3 class="text-2xl text-emerald-400 mb-4 border-b border-slate-700 pb-2"><i class="fa-solid fa-ranking-star mr-2"></i>Aktuelle Punkte</h3>
+            <h3 class="text-2xl text-emerald-400 mb-4 border-b border-slate-700 pb-2"><i class="fa-solid fa-ranking-star mr-2"></i>Tabelle (Punkte)</h3>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-slate-700 p-4 rounded-xl">
+                <div class="bg-slate-700 p-4 rounded-xl border border-slate-600/50">
                     <label class="block text-sm font-semibold text-slate-300 mb-1">Jörg</label>
                     <input type="number" id="pts-joerg" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
                 </div>
-                <div class="bg-slate-700 p-4 rounded-xl">
+                <div class="bg-slate-700 p-4 rounded-xl border border-slate-600/50">
                     <label class="block text-sm font-semibold text-slate-300 mb-1">Ronald</label>
                     <input type="number" id="pts-ronald" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
                 </div>
-                <div class="bg-slate-700 p-4 rounded-xl">
+                <div class="bg-slate-700 p-4 rounded-xl border border-slate-600/50">
                     <label class="block text-sm font-semibold text-slate-300 mb-1">Thomas</label>
                     <input type="number" id="pts-thomas" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
                 </div>
-                <div class="bg-slate-700 p-4 rounded-xl">
+                <div class="bg-slate-700 p-4 rounded-xl border border-slate-600/50">
                     <label class="block text-sm font-semibold text-slate-300 mb-1">Theo</label>
                     <input type="number" id="pts-theo" min="0" value="0" class="player-input w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white font-bold text-lg text-center transition-all">
                 </div>
@@ -80,13 +82,11 @@
         <!-- Wunschvereine Section -->
         <div class="bg-slate-800 rounded-2xl p-6 shadow-xl border border-slate-700 mb-8 transition-all">
             <button onclick="toggleWunschteams()" class="w-full flex justify-between items-center text-left focus:outline-none group">
-                <h3 class="text-2xl text-emerald-400 border-b border-transparent group-hover:border-slate-700 pb-1 transition-all font-['Teko'] uppercase tracking-wide"><i class="fa-solid fa-star mr-2"></i>Wunschvereine (Optional)</h3>
+                <h3 class="text-2xl text-emerald-400 border-b border-transparent group-hover:border-slate-700 pb-1 transition-all font-['Teko'] uppercase tracking-wide"><i class="fa-solid fa-star mr-2"></i>Wunschvereine & Einzelwahl</h3>
                 <i id="wunschteams-chevron" class="fa-solid fa-chevron-down text-emerald-500 transition-transform duration-300"></i>
             </button>
             
             <div id="wunschteams-content" class="hidden mt-4 pt-4 border-t border-slate-700">
-                <p class="text-slate-400 text-sm mb-4">Wähle pro Partie einen Lieblingsverein für ein bestimmtes Team. Klicke dann auf den Button in der jeweiligen Karte, um <b>nur diese Partie</b> zu generieren.</p>
-                
                 <div id="wunschteams-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Wird per JS befüllt -->
                 </div>
@@ -94,12 +94,12 @@
         </div>
 
         <button onclick="generateMatches()" class="mb-10 w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg transform transition hover:-translate-y-1 text-xl flex items-center justify-center">
-            <i class="fa-solid fa-rotate mr-2"></i> Spieltag Generieren
+            <i class="fa-solid fa-rotate mr-2"></i> Kompletter Spieltag (6 Partien)
         </button>
 
         <!-- Results Section -->
         <div id="results" class="hidden">
-            <h3 class="text-3xl text-center text-white mb-6 font-bold tracking-wider font-['Teko']"><i class="fa-regular fa-calendar-days mr-2 text-emerald-500"></i>Die 6 Partien</h3>
+            <h3 class="text-3xl text-center text-white mb-6 font-bold tracking-wider font-['Teko']"><i class="fa-regular fa-calendar-days mr-2 text-emerald-500"></i>Spielplan</h3>
             <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
                 <!-- Matches will be injected here via JS -->
             </div>
@@ -113,61 +113,54 @@
             <button onclick="toggleHelp()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
             <h3 class="text-3xl text-emerald-400 mb-4 font-['Teko'] uppercase tracking-wide"><i class="fa-solid fa-scale-balanced mr-2"></i>Das Handicap-System</h3>
             <div class="text-slate-300 space-y-3 text-sm leading-relaxed">
-                <p>Damit die Partien ausgeglichen bleiben, bekommt das Team mit mehr Punkten ein schwächeres Team zugelost und umgekehrt.</p>
+                <p>Das Programm berechnet für jedes Team die Summe der Tabellenpunkte. Die Differenz beider Teams bestimmt das OVR-Handicap.</p>
                 <ul class="list-disc list-inside space-y-1 ml-2">
-                    <li>Die theoretische <strong>Basis-Teamstärke (OVR) ist 80</strong>.</li>
-                    <li>Für jeweils <strong>3 Punkte Vorsprung</strong> in der Tabelle gibt es <strong>-1 OVR</strong> Abzug bei der Teamwahl.</li>
-                    <li>Für jeweils <strong>3 Punkte Rückstand</strong> gibt es <strong>+1 OVR</strong> Bonus.</li>
+                    <li><strong>Basis-OVR:</strong> 80</li>
+                    <li><strong>Handicap:</strong> ±1 OVR pro 3 Punkte Differenz.</li>
+                    <li><strong>Wunschteams:</strong> Wählst du einen Club fest aus, passt sich der Gegner automatisch an, um die Balance zu wahren.</li>
                 </ul>
-                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 mt-3 text-emerald-100">
-                    <strong>Beispiel:</strong> Team A (20 Pkt) vs. Team B (8 Pkt). Differenz: 12 Punkte.<br>
-                    12 / 3 = 4 Stärkepunkte Unterschied.<br>
-                    Team A bekommt ein In-Game Team mit ~OVR 76 (80 - 4).<br>
-                    Team B bekommt ein In-Game Team mit ~OVR 84 (80 + 4).
+                <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 mt-3 text-emerald-100 italic">
+                    Beispiel: Team A hat 15 Pkt, Team B hat 6 Pkt. Differenz = 9. Team A bekommt ein OVR -3 Team (77), Team B ein OVR +3 Team (83).
                 </div>
-                <p class="mt-2 text-emerald-400 font-semibold">Mit Wunschteam:</p>
-                <p>Wenn du ein Wunschteam wählst (z.B. OVR 85 für Team A), schaut das System, wie viele Stärkepunkte Unterschied nötig sind, und wählt den passenden Gegner (z.B. OVR 85 + 8 = OVR 93 -> bestmögliches Team) für Team B.</p>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notifications -->
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
-
     <script>
-        // Erweitere Offline-Datenbank als starkes Fallback
+        // Aktuelle Datenbank basierend auf SoFIFA Ratings
         const offlineDb = {
-            86: ["Manchester City", "Real Madrid"],
-            85: ["Bayern München", "FC Liverpool", "FC Arsenal"],
-            84: ["FC Barcelona", "Paris SG", "Inter Mailand", "Bayer Leverkusen"],
-            83: ["Atletico Madrid", "Juventus Turin", "AC Mailand", "Borussia Dortmund", "Aston Villa", "Newcastle United"],
-            82: ["RB Leipzig", "SSC Neapel", "Tottenham Hotspur", "Lazio Rom", "AS Rom"],
-            81: ["FC Chelsea", "Manchester United", "Real Sociedad", "Galatasaray", "Fenerbahce"],
-            80: ["Eintracht Frankfurt", "West Ham United", "PSV Eindhoven", "Sporting CP", "Benfica Lissabon", "FC Porto", "Athletic Bilbao"],
-            79: ["VfB Stuttgart", "Olympique Marseille", "Olympique Lyon", "AS Monaco", "Betis Sevilla", "FC Villarreal"],
-            78: ["SC Freiburg", "FC Sevilla", "AC Florenz", "Atalanta Bergamo", "Ajax Amsterdam", "Feyenoord Rotterdam"],
-            77: ["VfL Wolfsburg", "Werder Bremen", "FC Girona", "FC Turin", "Besiktas"],
-            76: ["FC Augsburg", "1. FSV Mainz 05", "Union Berlin", "Borussia M'gladbach", "TSG Hoffenheim"],
-            75: ["VfL Bochum", "FC St. Pauli", "Holstein Kiel", "RCD Mallorca", "FC Empoli"],
-            74: ["1. FC Heidenheim", "Deportivo Alaves", "FC Nantes", "Hellas Verona"]
+            86: ["Real Madrid", "Manchester City"],
+            85: ["Bayern München", "Bayer Leverkusen", "FC Liverpool", "FC Arsenal", "FC Barcelona", "Inter Mailand"],
+            84: ["Paris Saint-Germain", "Atletico Madrid"],
+            83: ["Borussia Dortmund", "Juventus Turin", "AC Mailand", "Aston Villa", "Tottenham Hotspur", "Newcastle United", "Manchester United"],
+            82: ["RB Leipzig", "SSC Neapel", "Lazio Rom", "AS Rom", "FC Chelsea", "Real Sociedad", "Athletic Bilbao", "Sporting CP", "Benfica Lissabon", "FC Porto"],
+            81: ["VfB Stuttgart", "Eintracht Frankfurt", "West Ham United", "Brighton & Hove Albion", "Olympique Marseille", "AS Monaco", "Olympique Lyon", "PSV Eindhoven", "Galatasaray", "Fenerbahce"],
+            80: ["SC Freiburg", "LOSC Lille", "FC Villarreal", "Betis Sevilla", "Girona FC", "Ajax Amsterdam", "Feyenoord Rotterdam", "FC Bologna"],
+            79: ["Werder Bremen", "VfL Wolfsburg", "TSG Hoffenheim", "Borussia M'gladbach", "Fulham", "Nottingham Forest", "Crystal Palace", "Besiktas JK", "RC Lens", "FC Turin"],
+            78: ["FC Augsburg", "1. FSV Mainz 05", "Union Berlin", "Everton", "Wolverhampton Wanderers", "Sevilla FC", "Valencia CF", "Atalanta Bergamo", "AC Florenz"],
+            77: ["1. FC Heidenheim", "FC St. Pauli", "VfL Bochum", "AFC Bournemouth", "FC Brentford", "Leicester City", "RCD Mallorca", "UD Las Palmas", "CA Osasuna", "FC Toulouse", "Hellas Verona", "FC Empoli"],
+            76: ["Holstein Kiel", "Genoa CFC", "Udinese Calcio", "RC Strasbourg", "HSC Montpellier", "FC Nantes", "OGC Nizza"],
+            75: ["FC Southampton", "Ipswich Town", "Parma Calcio", "Como 1907", "Venezia FC", "RCD Espanyol"],
+            // 2. Bundesliga & Internationales Mittelfeld
+            74: ["1. FC Köln", "Hamburger SV", "FC Burnley", "Sheffield United", "Luton Town"],
+            73: ["Hertha BSC", "Fortuna Düsseldorf", "Hannover 96", "SV Darmstadt 98", "Middlesbrough FC"],
+            72: ["FC Schalke 04", "Karlsruher SC", "SC Paderborn 07", "1. FC Kaiserslautern", "1. FC Nürnberg", "SpVgg Greuther Fürth", "SV Elversberg"],
+            71: ["1. FC Magdeburg", "Eintracht Braunschweig", "Preußen Münster", "SSV Ulm 1846"],
+            70: ["Jahn Regensburg", "Stoke City", "Hull City", "Watford FC"],
+            69: ["Arminia Bielefeld", "Dynamo Dresden", "TSV 1860 München"]
         };
 
-        // Dies ist die aktive Datenbank (Standardmäßig Offline, kann durch Live-Fetch überschrieben werden)
-        let clubsDb = JSON.parse(JSON.stringify(offlineDb));
-
-        // The 6 Matchups defined by the user
         const matchups = [
             { id: 1, team1: ["Ronald", "Theo"], team2: ["Thomas", "Jörg"] },
             { id: 2, team1: ["Ronald", "Jörg"], team2: ["Thomas", "Theo"] },
             { id: 3, team1: ["Jörg", "Theo"], team2: ["Thomas", "Ronald"] },
-            { id: 4, team1: ["Thomas", "Jörg"], team2: ["Ronald", "Theo"] }, // Rückspiel 1
-            { id: 5, team1: ["Thomas", "Theo"], team2: ["Ronald", "Jörg"] }, // Rückspiel 2
-            { id: 6, team1: ["Thomas", "Ronald"], team2: ["Jörg", "Theo"] }  // Rückspiel 3
+            { id: 4, team1: ["Thomas", "Jörg"], team2: ["Ronald", "Theo"] },
+            { id: 5, team1: ["Thomas", "Theo"], team2: ["Ronald", "Jörg"] },
+            { id: 6, team1: ["Thomas", "Ronald"], team2: ["Jörg", "Theo"] }
         ];
 
-        // Settings
         const BASE_OVR = 80;
-        const PTS_PER_OVR_DROP = 3; // Für wie viele Punkte Unterschied gibt es 1 OVR Abzug/Aufschlag?
+        const PTS_PER_OVR_DROP = 3;
 
         document.addEventListener('DOMContentLoaded', () => {
             initResultCards();
@@ -180,7 +173,6 @@
             matchups.forEach((_, index) => {
                 const card = document.createElement('div');
                 card.id = 'match-card-' + index;
-                // Initiiert als versteckte Karten, damit sie bei Einzel-Generierung schon existieren
                 card.className = "hidden bg-slate-800 border border-slate-700 rounded-2xl p-5 shadow-lg relative overflow-hidden group transition-all duration-200";
                 container.appendChild(card);
             });
@@ -195,16 +187,15 @@
 
         function initWunschteams() {
             const container = document.getElementById('wunschteams-container');
-            container.innerHTML = ''; // Wichtig: Zurücksetzen falls DB aktualisiert wird
+            container.innerHTML = '';
             
-            // Generate flat list of clubs for the dropdowns
             let clubsFlat = [];
-            for (const [ovr, clubs] of Object.entries(clubsDb)) {
+            for (const [ovr, clubs] of Object.entries(offlineDb)) {
                 clubs.forEach(c => clubsFlat.push({name: c, ovr: parseInt(ovr)}));
             }
-            clubsFlat.sort((a, b) => a.name.localeCompare(b.name));
+            clubsFlat.sort((a, b) => b.ovr - a.ovr || a.name.localeCompare(b.name));
             
-            let clubOptions = `<option value="">-- Kein Wunschteam (Zufall) --</option>`;
+            let clubOptions = `<option value="">-- Zufall --</option>`;
             clubsFlat.forEach(c => {
                 clubOptions += `<option value="${c.name}">${c.name} (OVR ${c.ovr})</option>`;
             });
@@ -216,128 +207,24 @@
                 const div = document.createElement('div');
                 div.className = "bg-slate-700/50 p-4 rounded-xl border border-slate-600";
                 div.innerHTML = `
-                    <div class="text-sm font-bold text-slate-300 mb-3 border-b border-slate-600 pb-1">
-                        Partie ${match.id}: <span class="text-emerald-400">${team1Str}</span> vs <span class="text-blue-400">${team2Str}</span>
+                    <div class="text-xs font-bold text-slate-400 mb-2 uppercase tracking-tighter">
+                        Partie ${match.id}: ${team1Str} vs ${team2Str}
                     </div>
-                    <div class="flex flex-col space-y-2 mb-3">
-                        <select id="wunsch-club-${index}" class="w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white text-sm focus:outline-none focus:border-emerald-500">
+                    <div class="flex space-x-2">
+                        <select id="wunsch-club-${index}" class="flex-1 bg-slate-900 border border-slate-600 rounded-lg py-1.5 px-3 text-white text-xs focus:outline-none focus:border-emerald-500">
                             ${clubOptions}
                         </select>
-                        <select id="wunsch-team-${index}" class="w-full bg-slate-900 border border-slate-600 rounded-lg py-2 px-3 text-white text-sm focus:outline-none focus:border-emerald-500">
-                            <option value="1">zuweisen an: ${team1Str}</option>
-                            <option value="2">zuweisen an: ${team2Str}</option>
+                        <select id="wunsch-team-${index}" class="w-24 bg-slate-900 border border-slate-600 rounded-lg py-1.5 px-3 text-white text-[10px] focus:outline-none focus:border-emerald-500">
+                            <option value="1">Team 1</option>
+                            <option value="2">Team 2</option>
                         </select>
+                        <button onclick="generateSingleMatchUI(${index})" class="bg-emerald-600 hover:bg-emerald-500 text-white p-2 rounded-lg transition-colors shadow-lg">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
                     </div>
-                    <button onclick="generateSingleMatchUI(${index}); document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });" class="w-full bg-slate-600 hover:bg-emerald-600 text-white text-xs font-bold py-2 px-3 rounded-lg transition-colors flex items-center justify-center">
-                        <i class="fa-solid fa-play mr-2"></i> Nur diese Partie generieren
-                    </button>
                 `;
                 container.appendChild(div);
             });
-        }
-
-        // --- NEU: Live Fetch Logik ---
-        async function fetchLiveTeams() {
-            const btn = document.getElementById('btn-update-db');
-            const statusLabel = document.getElementById('db-status');
-            const icon = btn.querySelector('i');
-            
-            icon.classList.add('fa-spin');
-            btn.disabled = true;
-            statusLabel.innerHTML = '<span class="text-yellow-400">Wird geladen...</span>';
-            showToast("Lade Live-Daten von SoFIFA (Top 180 Teams)...", "info");
-
-            try {
-                let newDb = {};
-                // Wir laden die ersten 3 Seiten (0, 60, 120) = ca. 180 Teams
-                for (let offset of [0, 60, 120]) {
-                    // Nutzung eines öffentlichen CORS-Proxys, um die SoFIFA-Seite laden zu dürfen
-                    let targetUrl = `https://sofifa.com/teams?type=club&offset=${offset}`;
-                    let proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-                    
-                    let res = await fetch(proxyUrl);
-                    if (!res.ok) throw new Error("Netzwerkfehler beim Proxy");
-                    
-                    let data = await res.json();
-                    
-                    // HTML parsen
-                    let parser = new DOMParser();
-                    let doc = parser.parseFromString(data.contents, 'text/html');
-                    
-                    // Tabellen-Reihen durchsuchen
-                    let rows = doc.querySelectorAll('table tbody tr');
-                    rows.forEach(row => {
-                        // SoFIFA HTML Struktur (kann sich theoretisch ändern)
-                        let nameEl = row.querySelector('td.col-name-wide a div.ellipsis') || row.querySelector('td.col-name-wide a');
-                        let ovrEl = row.querySelector('td[data-col="oa"]');
-                        
-                        if (nameEl && ovrEl) {
-                            let name = nameEl.textContent.trim();
-                            let ovr = parseInt(ovrEl.textContent.trim());
-                            
-                            // Bereinigen von komischen Zeichen
-                            name = name.replace(/\s+/g, ' '); 
-
-                            if (!isNaN(ovr) && name.length > 0) {
-                                if (!newDb[ovr]) newDb[ovr] = [];
-                                if (!newDb[ovr].includes(name)) newDb[ovr].push(name);
-                            }
-                        }
-                    });
-                }
-                
-                // Prüfen ob wir genug Teams gefunden haben (Sicherheits-Check)
-                let teamCount = Object.values(newDb).flat().length;
-                if (teamCount > 100) {
-                    clubsDb = newDb; // Überschreibe lokale DB mit Live DB
-                    statusLabel.innerHTML = `<span class="text-emerald-400">Live (${teamCount} Teams)</span>`;
-                    initWunschteams(); // Dropdowns aktualisieren
-                    showToast(`Erfolgreich aktualisiert! ${teamCount} Teams geladen.`, "success");
-                } else {
-                    throw new Error("Zu wenig Teams gefunden. Evtl. wurde die SoFIFA Struktur geändert.");
-                }
-
-            } catch (err) {
-                console.error("Live Update Fehler:", err);
-                statusLabel.innerHTML = `<span class="text-red-400">Fehler (Offline DB aktiv)</span>`;
-                showToast("Fehler beim Abrufen der Live-Daten. SoFIFA blockiert möglicherweise die Anfrage. Offline-DB wird genutzt.", "error");
-            } finally {
-                icon.classList.remove('fa-spin');
-                btn.disabled = false;
-            }
-        }
-
-        // --- NEU: Toast Notifications ---
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            
-            let bgColor = 'bg-blue-600';
-            let icon = 'fa-circle-info';
-            
-            if (type === 'success') {
-                bgColor = 'bg-emerald-600';
-                icon = 'fa-check-circle';
-            } else if (type === 'error') {
-                bgColor = 'bg-red-600';
-                icon = 'fa-circle-exclamation';
-            }
-
-            toast.className = `${bgColor} text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all duration-300 opacity-0 transform translate-y-4`;
-            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i><span class="text-sm font-semibold">${message}</span>`;
-            
-            container.appendChild(toast);
-            
-            // Fade In
-            setTimeout(() => {
-                toast.classList.remove('opacity-0', 'translate-y-4');
-            }, 10);
-            
-            // Fade Out and remove
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-4');
-                setTimeout(() => toast.remove(), 300);
-            }, type === 'error' ? 6000 : 4000); // Errors show longer
         }
 
         function getPoints() {
@@ -350,136 +237,91 @@
         }
 
         function getClubOvr(clubName) {
-            for (const [ovr, clubs] of Object.entries(clubsDb)) {
+            for (const [ovr, clubs] of Object.entries(offlineDb)) {
                 if (clubs.includes(clubName)) return parseInt(ovr);
             }
             return BASE_OVR;
         }
 
         function getTeamForOvr(targetOvr, excludeTeam = null) {
-            // Clamp OVR between min and max available in DB
-            let minOvr = Math.min(...Object.keys(clubsDb).map(Number));
-            let maxOvr = Math.max(...Object.keys(clubsDb).map(Number));
-            
+            let ovrKeys = Object.keys(offlineDb).map(Number).sort((a,b) => a-b);
+            let minOvr = ovrKeys[0];
+            let maxOvr = ovrKeys[ovrKeys.length-1];
             let ovr = Math.max(minOvr, Math.min(targetOvr, maxOvr));
             
-            // Try to find a team in exact category
-            let availableTeams = clubsDb[ovr];
-            if (excludeTeam) {
-                availableTeams = availableTeams.filter(t => t !== excludeTeam);
-            }
+            let availableTeams = offlineDb[ovr] || [];
+            if (excludeTeam) availableTeams = availableTeams.filter(t => t !== excludeTeam);
 
-            // If category empty (due to exclusion), expand search +/- 1 OVR until found
             let searchRadius = 1;
-            while (availableTeams.length === 0 && searchRadius < 5) {
-                let lowerOvr = ovr - searchRadius;
-                let upperOvr = ovr + searchRadius;
-                
-                let fallbackTeams = [];
-                if (clubsDb[lowerOvr]) fallbackTeams.push(...clubsDb[lowerOvr]);
-                if (clubsDb[upperOvr]) fallbackTeams.push(...clubsDb[upperOvr]);
-                
-                if (excludeTeam) {
-                    fallbackTeams = fallbackTeams.filter(t => t !== excludeTeam);
-                }
-
-                if (fallbackTeams.length > 0) {
-                    availableTeams = fallbackTeams;
+            while (availableTeams.length === 0 && searchRadius < 20) {
+                let checkLower = ovr - searchRadius;
+                let checkUpper = ovr + searchRadius;
+                let combined = [];
+                if (offlineDb[checkLower]) combined.push(...offlineDb[checkLower]);
+                if (offlineDb[checkUpper]) combined.push(...offlineDb[checkUpper]);
+                if (excludeTeam) combined = combined.filter(t => t !== excludeTeam);
+                if (combined.length > 0) {
+                    availableTeams = combined;
+                    break;
                 }
                 searchRadius++;
             }
-
-            // Pick random team from available
-            let randomIdx = Math.floor(Math.random() * availableTeams.length);
-            return availableTeams[randomIdx];
-        }
-
-        function toggleHelp() {
-            const modal = document.getElementById('help-modal');
-            modal.classList.toggle('hidden');
+            return availableTeams[Math.floor(Math.random() * availableTeams.length)];
         }
 
         function generateSingleMatch(index) {
             const pts = getPoints();
             const match = matchups[index];
-            
-            // Calculate points
-            let ptsTeam1 = match.team1.reduce((sum, player) => sum + pts[player], 0);
-            let ptsTeam2 = match.team2.reduce((sum, player) => sum + pts[player], 0);
-            
-            // Calculate difference
-            let diff = ptsTeam1 - ptsTeam2;
-
-            // Calculate base Target OVR
+            let ptsT1 = match.team1.reduce((sum, p) => sum + pts[p], 0);
+            let ptsT2 = match.team2.reduce((sum, p) => sum + pts[p], 0);
+            let diff = ptsT1 - ptsT2;
             let handicapSteps = Math.round(diff / PTS_PER_OVR_DROP);
+            
             let targetOvr1 = BASE_OVR - handicapSteps;
             let targetOvr2 = BASE_OVR + handicapSteps;
             let ovrDiff = targetOvr2 - targetOvr1;
 
             let club1, club2;
-            
-            // Check Wunschteam
-            let wunschClubEl = document.getElementById('wunsch-club-' + index);
-            let wunschTeamEl = document.getElementById('wunsch-team-' + index);
-            let wunschClub = wunschClubEl ? wunschClubEl.value : "";
-            let wunschTarget = wunschTeamEl ? wunschTeamEl.value : "1";
+            let wunschClub = document.getElementById('wunsch-club-' + index).value;
+            let wunschTarget = document.getElementById('wunsch-team-' + index).value;
 
             if (wunschClub !== "") {
-                let wunschOvr = getClubOvr(wunschClub);
+                let wOvr = getClubOvr(wunschClub);
                 if (wunschTarget === "1") {
                     club1 = wunschClub;
-                    // Team 2 needs to balance the handicap relative to Wunschteam
-                    club2 = getTeamForOvr(wunschOvr + ovrDiff, club1);
+                    club2 = getTeamForOvr(wOvr + ovrDiff, club1);
                 } else {
                     club2 = wunschClub;
-                    // Team 1 needs to balance the handicap relative to Wunschteam
-                    club1 = getTeamForOvr(wunschOvr - ovrDiff, club2);
+                    club1 = getTeamForOvr(wOvr - ovrDiff, club2);
                 }
             } else {
                 club1 = getTeamForOvr(targetOvr1);
                 club2 = getTeamForOvr(targetOvr2, club1);
             }
 
-            // Aktuelle OVR der gepickten Teams abfragen für exakte Anzeige
-            let actualOvr1 = getClubOvr(club1);
-            let actualOvr2 = getClubOvr(club2);
+            let actOvr1 = getClubOvr(club1);
+            let actOvr2 = getClubOvr(club2);
 
-            // Build inner HTML for the card
             return `
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-blue-500 opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                
-                <button onclick="generateSingleMatchUI(${index})" class="absolute top-3 right-3 text-slate-500 hover:text-emerald-400 hover:rotate-180 transition-all duration-300 z-10" title="Diese Partie neu auslosen">
+                <button onclick="generateSingleMatchUI(${index})" class="absolute top-3 right-3 text-slate-500 hover:text-emerald-400 hover:rotate-180 transition-all duration-300 z-10">
                     <i class="fa-solid fa-arrows-rotate text-lg"></i>
                 </button>
-                
-                <div class="text-center mb-4 text-emerald-500 font-bold text-sm tracking-widest uppercase">
-                    Partie ${match.id} ${match.id > 3 ? '(Rückspiel)' : '(Hinspiel)'}
-                </div>
-                
+                <div class="text-center mb-4 text-emerald-500 font-bold text-sm tracking-widest uppercase italic">Partie ${match.id} ${match.id > 3 ? '(Rückspiel)' : '(Hinspiel)'}</div>
                 <div class="flex justify-between items-center">
-                    <!-- Team 1 -->
                     <div class="w-5/12 text-center">
-                        <div class="text-sm text-slate-400 mb-1">${match.team1.join(' & ')}</div>
-                        <div class="text-xl font-bold text-white leading-tight h-12 flex items-center justify-center">${club1}</div>
-                        <div class="mt-2 inline-block bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-bold ${wunschClub !== "" && wunschTarget === "1" ? 'text-emerald-400' : 'text-yellow-500'}">
-                            OVR ${actualOvr1} ${wunschClub !== "" && wunschTarget === "1" ? '<i class="fa-solid fa-star text-[10px] ml-1"></i>' : ''}
-                        </div>
-                        <div class="text-[10px] text-slate-500 mt-1">Summe Pkt: ${ptsTeam1}</div>
+                        <div class="text-[10px] text-slate-500 mb-1 font-bold">${match.team1.join(' & ')}</div>
+                        <div class="text-lg font-bold text-white leading-tight min-h-[3rem] flex items-center justify-center">${club1}</div>
+                        <div class="mt-2 inline-block bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs font-bold text-emerald-400">OVR ${actOvr1}</div>
                     </div>
-
-                    <!-- VS -->
-                    <div class="w-2/12 text-center">
-                        <span class="match-vs text-3xl text-slate-600">VS</span>
+                    <div class="w-2/12 text-center flex flex-col items-center">
+                        <span class="match-vs text-2xl text-slate-700">VS</span>
+                        <div class="text-[8px] text-slate-600 mt-1 uppercase font-bold">Diff: ${Math.abs(diff)}</div>
                     </div>
-
-                    <!-- Team 2 -->
                     <div class="w-5/12 text-center">
-                        <div class="text-sm text-slate-400 mb-1">${match.team2.join(' & ')}</div>
-                        <div class="text-xl font-bold text-white leading-tight h-12 flex items-center justify-center">${club2}</div>
-                        <div class="mt-2 inline-block bg-slate-900 border border-slate-600 rounded px-2 py-1 text-xs font-bold ${wunschClub !== "" && wunschTarget === "2" ? 'text-emerald-400' : 'text-yellow-500'}">
-                            OVR ${actualOvr2} ${wunschClub !== "" && wunschTarget === "2" ? '<i class="fa-solid fa-star text-[10px] ml-1"></i>' : ''}
-                        </div>
-                        <div class="text-[10px] text-slate-500 mt-1">Summe Pkt: ${ptsTeam2}</div>
+                        <div class="text-[10px] text-slate-500 mb-1 font-bold">${match.team2.join(' & ')}</div>
+                        <div class="text-lg font-bold text-white leading-tight min-h-[3rem] flex items-center justify-center">${club2}</div>
+                        <div class="mt-2 inline-block bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs font-bold text-emerald-400">OVR ${actOvr2}</div>
                     </div>
                 </div>
             `;
@@ -488,28 +330,25 @@
         function generateSingleMatchUI(index) {
             const card = document.getElementById('match-card-' + index);
             if (card) {
-                // Stellt sicher, dass das Ergebnisse-Feld und diese eine Karte sichtbar werden
                 document.getElementById('results').classList.remove('hidden');
                 card.classList.remove('hidden');
-
                 card.classList.add('opacity-50', 'scale-95');
                 setTimeout(() => {
                     card.innerHTML = generateSingleMatch(index);
                     card.classList.remove('opacity-50', 'scale-95');
-                }, 200);
+                }, 150);
             }
         }
 
         function generateMatches() {
-            // Generiert alle Partien auf einmal
-            matchups.forEach((match, index) => {
-                generateSingleMatchUI(index);
-            });
-
-            // Smooth scroll to results
+            matchups.forEach((_, index) => generateSingleMatchUI(index));
             setTimeout(() => {
                 document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            }, 200);
+        }
+
+        function toggleHelp() {
+            document.getElementById('help-modal').classList.toggle('hidden');
         }
     </script>
 </body>
